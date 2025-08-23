@@ -1,0 +1,6 @@
+**/__pycache__/**/*
+**/combined_responses/**/*
+**/questions/**/*
+**/responses/**/*
+**/summary/**/*
+.env
