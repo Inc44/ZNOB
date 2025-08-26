@@ -58,6 +58,16 @@ python -m znob.cli -d your_zno_dataset -u your_zno_source
 python -m znob.cli -d your_zno_dataset --model google/gemini-2.5-flash
 ```
 
+### Reset Outputs
+
+```bash
+python -m znob.cli -d your_zno_dataset -r questions
+python -m znob.cli -d your_zno_dataset -r responses
+python -m znob.cli -d your_zno_dataset -r combined_responses
+python -m znob.cli -d your_zno_dataset -r summary
+python -m znob.cli -d your_zno_dataset -r all
+```
+
 ## 🎨 Command-Line Arguments
 
 | Argument               | Description       |
@@ -65,6 +75,7 @@ python -m znob.cli -d your_zno_dataset --model google/gemini-2.5-flash
 | `-u, --url <url>`      | Dataset source.   |
 | `-d, --dataset <path>` | Dataset to test.  |
 | `-m, --model <name>`   | AI model to test. |
+| `-r, --reset <name>`   | Reset outputs.    |
 
 ## 🎯 Motivation
 

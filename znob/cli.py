@@ -1,6 +1,7 @@
 from __future__ import annotations
 
 import argparse
+import shutil
 from pathlib import Path
 
 from .checker import process_questions
@@ -30,6 +31,11 @@ def main() -> None:
 		"--model",
 		help="AI model to test.",
 	)
+	arg_parser.add_argument(
+		"-r",
+		"--reset",
+		help="Reset outputs.",
+	)
 	args = arg_parser.parse_args()
 	questions_dir = Path(args.dataset) / "questions"
 	responses_dir = Path(args.dataset) / "responses"
@@ -42,6 +48,21 @@ def main() -> None:
 		summary_dir,
 	]:
 		output_dir.mkdir(parents=True, exist_ok=True)
+	if args.reset:
+		outputs = {output.strip() for output in args.reset.split(",") if output.strip()}
+		if "all" in outputs:
+			outputs = {"questions", "responses", "combined_responses", "summaries"}
+		output_dirs = {
+			"questions": questions_dir,
+			"responses": responses_dir,
+			"combined_responses": combined_responses_dir,
+			"summary": summary_dir,
+		}
+		for output in outputs:
+			output_dir = output_dirs[output]
+			if output_dir.exists():
+				shutil.rmtree(output_dir)
+		return
 	if args.url:
 		prepare_questions(args.url, questions_dir)
 	elif args.dataset:
