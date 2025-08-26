@@ -105,7 +105,7 @@ def convert_markdown_to_png(snippet: str, output_path: Path | str) -> None:
 </head>
 <body>{html}</body>
 </html>
-    """
+	"""
 	imgkit.from_string(html_document, output_path, options={"width": 720, "quiet": ""})
 
 

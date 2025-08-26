@@ -100,7 +100,7 @@ def process_questions(
 	combined_responses_path = combined_responses_dir / f"{model_filename}.md"
 	with combined_responses_path.open("w", encoding="utf-8") as file:
 		file.write(combined_responses)
-	summary_prompt = f"Підсумуй відповіді у форматі:\n\nномер питання) відповідь або номер питання) 1. відповідь, 2. відповідь, 3. відповідь, ...\n\n{combined_responses}"
+	summary_prompt = f"Підсумуй відповіді у форматі:\n\nномер питання) відповідь або номер питання) 1-відповідь, 2-відповідь, 3-відповідь, ...\n\n{combined_responses}"
 	summary = ask(summary_prompt, None, model)
 	summary_path = summary_dir / f"{model_filename}.md"
 	with summary_path.open("w", encoding="utf-8") as file:
