@@ -36,6 +36,16 @@ def main() -> None:
 		"--reset",
 		help="Reset outputs.",
 	)
+	arg_parser.add_argument(
+		"--no-text",
+		action="store_true",
+		help="Send only image, no text.",
+	)
+	arg_parser.add_argument(
+		"--no-image",
+		action="store_true",
+		help="Send only text, no image.",
+	)
 	args = arg_parser.parse_args()
 	questions_dir = Path(args.dataset) / "questions"
 	responses_dir = Path(args.dataset) / "responses"
@@ -74,6 +84,8 @@ def main() -> None:
 			combined_responses_dir,
 			summary_dir,
 			args.model,
+			args.no_text,
+			args.no_image,
 		)
 	else:
 		arg_parser.print_help()

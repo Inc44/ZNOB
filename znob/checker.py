@@ -9,7 +9,13 @@ from typing import List
 import requests
 
 
-def ask(markdown: str, image: Path | None, model: str) -> str:
+def ask(
+	markdown: str,
+	image: Path | None,
+	model: str,
+	no_text: bool = False,
+	no_image: bool = False,
+) -> str:
 	openrouter_api_key = os.getenv("OPENROUTER_API_KEY")
 	if not openrouter_api_key:
 		raise RuntimeError("OPENROUTER_API_KEY environment variable is required.")
@@ -17,8 +23,10 @@ def ask(markdown: str, image: Path | None, model: str) -> str:
 		"Authorization": f"Bearer {openrouter_api_key}",
 		"Accept": "application/json",
 	}
-	content = [{"type": "text", "text": markdown}]
-	if image and image.exists():
+	content = []
+	if not no_text:
+		content.append({"type": "text", "text": markdown})
+	if not no_image and image and image.exists():
 		with image.open("rb") as image_file:
 			encoded = base64.b64encode(image_file.read()).decode("utf-8")
 		content.append(
@@ -44,7 +52,12 @@ def ask(markdown: str, image: Path | None, model: str) -> str:
 
 
 def process_question(
-	i: int, questions_dir: Path, responses_dir: Path, model: str
+	i: int,
+	questions_dir: Path,
+	responses_dir: Path,
+	model: str,
+	no_text: bool,
+	no_image: bool,
 ) -> str:
 	markdown_question_path = questions_dir / f"{i}.md"
 	image_question_path = questions_dir / f"{i}.png"
@@ -53,7 +66,13 @@ def process_question(
 	)
 	with markdown_question_path.open("r", encoding="utf-8") as file:
 		markdown_question = file.read()
-	response = ask(markdown_question, image_question_path, model)
+	response = ask(
+		markdown_question,
+		image_question_path,
+		model,
+		no_text,
+		no_image,
+	)
 	with response_path.open("w", encoding="utf-8") as file:
 		file.write(response)
 	return response
@@ -65,6 +84,8 @@ def process_questions(
 	combined_responses_dir: Path,
 	summary_dir: Path,
 	model: str,
+	no_text: bool = False,
+	no_image: bool = False,
 ) -> None:
 	model_filename = model.replace("/", "_").replace(":", "_")
 	tasks = []
@@ -82,7 +103,15 @@ def process_questions(
 		i += 1
 	with concurrent.futures.ThreadPoolExecutor() as executor:
 		futures = {
-			executor.submit(process_question, j, questions_dir, responses_dir, model): j
+			executor.submit(
+				process_question,
+				j,
+				questions_dir,
+				responses_dir,
+				model,
+				no_text,
+				no_image,
+			): j
 			for j in tasks
 		}
 		for future in concurrent.futures.as_completed(futures):

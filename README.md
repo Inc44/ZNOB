@@ -61,21 +61,19 @@ python -m znob.cli -d your_zno_dataset --model google/gemini-2.5-flash
 ### Reset Outputs
 
 ```bash
-python -m znob.cli -d your_zno_dataset -r questions
-python -m znob.cli -d your_zno_dataset -r responses
-python -m znob.cli -d your_zno_dataset -r combined_responses
-python -m znob.cli -d your_zno_dataset -r summary
-python -m znob.cli -d your_zno_dataset -r all
+python -m znob.cli -d your_zno_dataset -r responses,combined_responses,summary # or questions or all
 ```
 
 ## 🎨 Command-Line Arguments
 
-| Argument               | Description       |
-|------------------------|-------------------|
-| `-u, --url <url>`      | Dataset source.   |
-| `-d, --dataset <path>` | Dataset to test.  |
-| `-m, --model <name>`   | AI model to test. |
-| `-r, --reset <name>`   | Reset outputs.    |
+| Argument               | Description               |
+|------------------------|---------------------------|
+| `-u, --url <url>`      | Dataset source.           |
+| `-d, --dataset <path>` | Dataset to test.          |
+| `-m, --model <name>`   | AI model to test.         |
+| `-r, --reset <name>`   | Reset outputs.            |
+| `--no-text`            | Send only image, no text. |
+| `--no-image`           | Send only text, no image. |
 
 ## 🎯 Motivation
 
