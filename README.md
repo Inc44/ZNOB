@@ -66,14 +66,15 @@ python -m znob.cli -d your_zno_dataset -r responses,combined_responses,summary #
 
 ## 🎨 Command-Line Arguments
 
-| Argument               | Description               |
-|------------------------|---------------------------|
-| `-u, --url <url>`      | Dataset source.           |
-| `-d, --dataset <path>` | Dataset to test.          |
-| `-m, --model <name>`   | AI model to test.         |
-| `-r, --reset <name>`   | Reset outputs.            |
-| `--no-text`            | Send only image, no text. |
-| `--no-image`           | Send only text, no image. |
+| Argument                 | Description                   |
+|--------------------------|-------------------------------|
+| `-u, --url <url>`        | Dataset source.               |
+| `-d, --dataset <path>`   | Dataset to test.              |
+| `-m, --model <name>`     | AI model to test.             |
+| `-r, --reset <name>`     | Reset outputs.                |
+| `--no-text`              | Send only image, no text.     |
+| `--no-image`             | Send only text, no image.     |
+| `--necessary-image-only` | Send image only if necessary. |
 
 ## 🎯 Motivation
 

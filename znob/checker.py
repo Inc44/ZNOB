@@ -3,6 +3,7 @@ from __future__ import annotations
 import base64
 import concurrent.futures
 import os
+import re
 from pathlib import Path
 from typing import List
 
@@ -15,6 +16,7 @@ def ask(
 	model: str,
 	no_text: bool = False,
 	no_image: bool = False,
+	necessary_image_only: bool = False,
 ) -> str:
 	openrouter_api_key = os.getenv("OPENROUTER_API_KEY")
 	if not openrouter_api_key:
@@ -26,7 +28,10 @@ def ask(
 	content = []
 	if not no_text:
 		content.append({"type": "text", "text": markdown})
-	if not no_image and image and image.exists():
+	send_image = not no_image and image and image.exists()
+	if necessary_image_only:
+		send_image = send_image and bool(re.search(r"!\[.*?\]\(.*?\)", markdown))
+	if send_image:
 		with image.open("rb") as image_file:
 			encoded = base64.b64encode(image_file.read()).decode("utf-8")
 		content.append(
@@ -58,6 +63,7 @@ def process_question(
 	model: str,
 	no_text: bool,
 	no_image: bool,
+	necessary_image_only: bool,
 ) -> str:
 	markdown_question_path = questions_dir / f"{i}.md"
 	image_question_path = questions_dir / f"{i}.png"
@@ -72,6 +78,7 @@ def process_question(
 		model,
 		no_text,
 		no_image,
+		necessary_image_only,
 	)
 	with response_path.open("w", encoding="utf-8") as file:
 		file.write(response)
@@ -86,6 +93,7 @@ def process_questions(
 	model: str,
 	no_text: bool = False,
 	no_image: bool = False,
+	necessary_image_only: bool = False,
 ) -> None:
 	model_filename = model.replace("/", "_").replace(":", "_")
 	tasks = []
@@ -111,6 +119,7 @@ def process_questions(
 				model,
 				no_text,
 				no_image,
+				necessary_image_only,
 			): j
 			for j in tasks
 		}

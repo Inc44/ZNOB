@@ -46,6 +46,11 @@ def main() -> None:
 		action="store_true",
 		help="Send only text, no image.",
 	)
+	arg_parser.add_argument(
+		"--necessary-image-only",
+		action="store_true",
+		help="Send image only if necessary.",
+	)
 	args = arg_parser.parse_args()
 	questions_dir = Path(args.dataset) / "questions"
 	responses_dir = Path(args.dataset) / "responses"
@@ -86,6 +91,7 @@ def main() -> None:
 			args.model,
 			args.no_text,
 			args.no_image,
+			args.necessary_image_only,
 		)
 	else:
 		arg_parser.print_help()
