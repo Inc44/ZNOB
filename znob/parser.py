@@ -90,6 +90,43 @@ def extract_markdown_from_html(html: str, base_url: str = "") -> List[str]:
 	return markdown_snippets
 
 
+def extract_answers_from_html(html: str) -> List[str]:
+	soup = BeautifulSoup(html, "html.parser")
+	task_cards = soup.select(".task-card")
+	answers_snippets = []
+	for task_card in task_cards:
+		table = task_card.select_one("table.select-answers-variants")
+		if table:
+			rows = table.find_all("tr")[1:]
+			answers = []
+			for row in rows:
+				th = row.find("th", class_="r")
+				tds = row.find_all("td")
+				if th:
+					subquestion = th.text.strip()
+					for j, td in enumerate(tds):
+						if td.find("span", class_="marker ok"):
+							letter = chr(ord("А") + j)
+							answers.append(f"{subquestion}-{letter}")
+				else:
+					for j, td in enumerate(tds):
+						if td.find("span", class_="marker ok"):
+							letter = chr(ord("А") + j)
+							answers.append(letter)
+							break
+			snippet = (
+				", ".join(answers)
+				if len(answers) > 1
+				else answers[0]
+				if answers
+				else ""
+			)
+			answers_snippets.append(snippet)
+		else:
+			answers_snippets.append("")
+	return answers_snippets
+
+
 def convert_markdown_to_png(snippet: str, output_path: Path | str) -> None:
 	html = markdown.markdown(snippet, extensions=["tables"])
 	html_document = f"""
@@ -130,9 +167,16 @@ def prepare_questions(url: str, questions_dir: Path) -> None:
 		else:
 			base_url = ""
 	markdown_snippets = extract_markdown_from_html(html, base_url=base_url)
+	answers_snippets = extract_answers_from_html(html)
 	for i, snippet in enumerate(markdown_snippets, 1):
 		markdown_question_path = questions_dir / f"{i}.md"
 		with markdown_question_path.open("w", encoding="utf-8") as file:
 			file.write(snippet)
 		image_question_path = questions_dir / f"{i}.png"
 		convert_markdown_to_png(snippet, image_question_path)
+	answers_path = questions_dir.parent / "answers.md"
+	answers_lines = [
+		f"{i}) {answer}" for i, answer in enumerate(answers_snippets, 1) if answer
+	]
+	with answers_path.open("w", encoding="utf-8") as file:
+		file.write("\n".join(answers_lines))
