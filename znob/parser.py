@@ -6,56 +6,30 @@ from urllib.parse import urlparse
 
 import imgkit
 import markdown
+import markdownify
 import requests
-from bs4 import BeautifulSoup, NavigableString, Tag
+from bs4 import BeautifulSoup, Tag
 
 
 def convert_html_to_markdown(element: Tag, base_url: str = "") -> str:
 	if not element:
 		return ""
-	markdown = ""
-	for child in element.children:
-		if isinstance(child, NavigableString):
-			markdown += child
-		elif child.name in ["b", "strong"]:
-			markdown += "**" + convert_html_to_markdown(child, base_url) + "**"
-		elif child.name in ["i", "em"]:
-			markdown += "*" + convert_html_to_markdown(child, base_url) + "*"
-		elif child.name == "br":
-			markdown += "\n"
-		elif child.name == "img":
-			src = child.get("src", "")
-			if base_url and not src.startswith(("http://", "https://")):
-				if src.startswith("/"):
-					src = base_url + src
-				else:
-					src = base_url + ("" if base_url.endswith("/") else "/") + src
-			alt = child.get("alt", "image")
-			markdown += f"![{alt}]({src})"
-		elif child.name == "table":
-			markdown += convert_table_to_markdown(child, base_url) + "\n"
-		else:
-			markdown += convert_html_to_markdown(child, base_url)
-	return markdown
-
-
-def convert_table_to_markdown(table: Tag, base_url: str) -> str:
-	markdown = ""
-	rows = table.find_all("tr")
-	if not rows:
-		return markdown
-	headers = rows[0].find_all(["th", "td"])
-	header = " | ".join(convert_html_to_markdown(cell, base_url) for cell in headers)
-	markdown += header + "\n"
-	separator = " | ".join(["---"] * len(headers))
-	markdown += separator + "\n"
-	for row in rows[1:]:
-		cells = row.find_all(["th", "td"])
-		row_markdown = " | ".join(
-			convert_html_to_markdown(cell, base_url) for cell in cells
-		)
-		markdown += row_markdown + "\n"
-	return markdown
+	for img in element.find_all("img"):
+		src = img.get("src", "")
+		if base_url and not src.startswith(("http://", "https://")):
+			if src.startswith("/"):
+				src = base_url + src
+			else:
+				src = base_url + ("" if base_url.endswith("/") else "/") + src
+			img["src"] = src
+	html = str(element)
+	soup = BeautifulSoup(html, "html.parser")
+	for img in soup.find_all("img"):
+		src = img.get("src", "")
+		alt = img.get("alt", "")
+		img.replace_with(f"![{alt}]({src})")
+	html = str(soup)
+	return markdownify.markdownify(html, escape_underscores=False)
 
 
 def extract_markdown_from_html(html: str, base_url: str = "") -> List[str]:
