@@ -25,8 +25,11 @@ def convert_html_to_markdown(element: Tag, base_url: str = "") -> str:
 			markdown += "\n"
 		elif child.name == "img":
 			src = child.get("src", "")
-			if src.startswith("/"):
-				src = base_url + src
+			if base_url and not src.startswith(("http://", "https://")):
+				if src.startswith("/"):
+					src = base_url + src
+				else:
+					src = base_url + ("" if base_url.endswith("/") else "/") + src
 			alt = child.get("alt", "image")
 			markdown += f"![{alt}]({src})"
 		elif child.name == "table":
@@ -110,10 +113,22 @@ def convert_markdown_to_png(snippet: str, output_path: Path | str) -> None:
 
 
 def prepare_questions(url: str, questions_dir: Path) -> None:
-	resp = requests.get(url)
-	html = resp.text
-	parsed_url = urlparse(url)
-	base_url = f"{parsed_url.scheme}://{parsed_url.netloc}"
+	if url.startswith(("http://", "https://")):
+		resp = requests.get(url)
+		html = resp.text
+	else:
+		with open(url, "r", encoding="utf-8") as file:
+			html = file.read()
+	soup = BeautifulSoup(html, "html.parser")
+	base = soup.find("base")
+	if base and base.get("href"):
+		base_url = base["href"]
+	else:
+		if url.startswith(("http://", "https://")):
+			parsed_url = urlparse(url)
+			base_url = f"{parsed_url.scheme}://{parsed_url.netloc}"
+		else:
+			base_url = ""
 	markdown_snippets = extract_markdown_from_html(html, base_url=base_url)
 	for i, snippet in enumerate(markdown_snippets, 1):
 		markdown_question_path = questions_dir / f"{i}.md"
