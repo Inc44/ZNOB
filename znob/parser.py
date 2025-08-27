@@ -49,17 +49,24 @@ def extract_markdown_from_html(html: str, base_url: str = "") -> List[str]:
 			else "Питання відсутнє"
 		)
 		snippet = f"## {counter}\n\n{question}\n\n"
-		answers = task_card.select(".answers .answer")
-		for answer in answers:
-			marker = (
-				answer.select_one(".marker").text.strip()
-				if answer.select_one(".marker")
-				else ""
-			)
-			if answer.select_one(".marker"):
-				answer.select_one(".marker").extract()
-			markdown_answer = convert_html_to_markdown(answer, base_url).strip()
-			snippet += f"- **{marker}** {markdown_answer}\n"
+		answers_sections = task_card.select(".answers")
+		for answers_section in answers_sections:
+			quest_title = answers_section.select_one(".quest-title")
+			if quest_title:
+				title_text = convert_html_to_markdown(quest_title, base_url).strip()
+				snippet += f"{title_text}\n\n"
+			answers = answers_section.select(".answer")
+			for answer in answers:
+				marker = (
+					answer.select_one(".marker").text.strip()
+					if answer.select_one(".marker")
+					else ""
+				)
+				if answer.select_one(".marker"):
+					answer.select_one(".marker").extract()
+				markdown_answer = convert_html_to_markdown(answer, base_url).strip()
+				snippet += f"**{marker}** {markdown_answer}\n\n"
+			snippet += "\n"
 		markdown_snippets.append(snippet)
 	return markdown_snippets
 
@@ -109,18 +116,18 @@ def convert_markdown_to_png(snippet: str, output_path: Path | str) -> None:
 <head>
 	<style>
 		body{{font-family: sans-serif;padding: 1.25rem;background-color: white;}}
-		h2{{color: mediumaquamarine;}}
+		h2{{color: lightseagreen;}}
 		strong{{font-weight: bold;}}
 		em{{font-style: italic;}}
 		table{{border-collapse: collapse;}}
-		table,th,td{{border: 0.0625rem solid black;padding: 0.3125rem;}}
-		img{{max-width: 100%;height: auto;}}
+		table,td{{border: 0.0625rem solid black;padding: 0.3125rem;}}
+		th{{display: none;}}
 	</style>
 </head>
 <body>{html}</body>
 </html>
 	"""
-	imgkit.from_string(html_document, output_path, options={"width": 720, "quiet": ""})
+	imgkit.from_string(html_document, output_path, options={"width": 512, "quiet": ""})
 
 
 def prepare_questions(url: str, questions_dir: Path) -> None:
