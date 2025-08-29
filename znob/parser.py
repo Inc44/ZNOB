@@ -67,7 +67,7 @@ def extract_markdown_from_html(html: str, base_url: str = "") -> List[str]:
 				markdown_answer = convert_html_to_markdown(answer, base_url).strip()
 				snippet += f"**{marker}** {markdown_answer}\n\n"
 			snippet += "\n"
-		markdown_snippets.append(snippet)
+		markdown_snippets.append(snippet.strip())
 	return markdown_snippets
 
 
