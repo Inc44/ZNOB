@@ -133,7 +133,9 @@ def convert_markdown_to_png(
 		img{{max-width: 100%;}}
 	</style>
 </head>
-<body>{html}</body>
+<body>
+	{html}
+</body>
 </html>
 	"""
 	hti.screenshot(html_str=html_document, save_as=save_as)
