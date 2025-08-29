@@ -6,6 +6,7 @@ from pathlib import Path
 
 from .checker import process_questions
 from .parser import prepare_questions
+from .json_parser import prepare_questions_from_json
 
 
 def main() -> None:
@@ -79,7 +80,10 @@ def main() -> None:
 				shutil.rmtree(output_dir)
 		return
 	if args.url:
-		prepare_questions(args.url, questions_dir)
+		if args.url.endswith(".json"):
+			prepare_questions_from_json(args.url, questions_dir)
+		else:
+			prepare_questions(args.url, questions_dir)
 	elif args.dataset:
 		if not args.model:
 			raise ValueError("A model is required.")
