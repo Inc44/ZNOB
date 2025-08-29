@@ -4,11 +4,13 @@ from pathlib import Path
 from typing import List
 from urllib.parse import urlparse
 
-import imgkit
 import markdown
 import markdownify
 import requests
 from bs4 import BeautifulSoup, Tag
+from html2image import Html2Image
+from PIL import Image
+from PIL.ImageOps import invert
 
 
 def convert_html_to_markdown(element: Tag, base_url: str = "") -> str:
@@ -108,26 +110,40 @@ def extract_answers_from_html(html: str) -> List[str]:
 	return answers_snippets
 
 
-def convert_markdown_to_png(snippet: str, output_path: Path | str) -> None:
+def convert_markdown_to_png(
+	snippet: str,
+	hti: Html2Image,
+	questions_dir: Path | str,
+	save_as: str,
+	stylesheet_href: str = "",
+	script_src: str = "",
+) -> None:
 	html = markdown.markdown(snippet, extensions=["tables"])
 	html_document = f"""
 <!DOCTYPE html>
 <html>
 <head>
+	<link rel="stylesheet" href="{stylesheet_href}">
+	<script src="{script_src}"></script>
 	<style>
-		body{{font-family: sans-serif;padding: 1.25rem;background-color: white;}}
-		h2{{color: lightseagreen;}}
-		strong{{font-weight: bold;}}
-		em{{font-style: italic;}}
+		body{{background-color: white;}}
 		table{{border-collapse: collapse;}}
 		table,td{{border: 0.0625rem solid black;padding: 0.3125rem;}}
 		th{{display: none;}}
+		img{{max-width: 100%;}}
 	</style>
 </head>
 <body>{html}</body>
 </html>
 	"""
-	imgkit.from_string(html_document, output_path, options={"width": 512, "quiet": ""})
+	hti.screenshot(html_str=html_document, save_as=save_as)
+	image_question_path = questions_dir / save_as
+	image_question = Image.open(image_question_path)
+	image_question_bbox = invert(image_question).getbbox()
+	if image_question_bbox:
+		_, _, right, bottom = image_question_bbox
+		image_question = image_question.crop((0, 0, right + 8, bottom + 8))
+	image_question.save(image_question_path)
 
 
 def prepare_questions(url: str, questions_dir: Path) -> None:
@@ -147,14 +163,29 @@ def prepare_questions(url: str, questions_dir: Path) -> None:
 			base_url = f"{parsed_url.scheme}://{parsed_url.netloc}"
 		else:
 			base_url = ""
+	stylesheet_href = ""
+	stylesheet = soup.find("link", rel="stylesheet")
+	if stylesheet:
+		stylesheet_href = stylesheet.get("href", "")
+	script_src = ""
+	script = soup.find("script", src=True)
+	if script:
+		script_src = script.get("src", "")
 	markdown_snippets = extract_markdown_from_html(html, base_url=base_url)
 	answers_snippets = extract_answers_from_html(html)
+	hti = Html2Image(
+		browser="edge",
+		output_path=str(questions_dir),
+		size=(512, 1024),
+		disable_logging=True,
+	)
 	for i, snippet in enumerate(markdown_snippets, 1):
 		markdown_question_path = questions_dir / f"{i}.md"
 		with markdown_question_path.open("w", encoding="utf-8") as file:
 			file.write(snippet)
-		image_question_path = questions_dir / f"{i}.png"
-		convert_markdown_to_png(snippet, image_question_path)
+		convert_markdown_to_png(
+			snippet, hti, questions_dir, f"{i}.png", stylesheet_href, script_src
+		)
 	answers_path = questions_dir.parent / "answers.md"
 	answers_lines = [
 		f"{i}) {answer}" for i, answer in enumerate(answers_snippets, 1) if answer
