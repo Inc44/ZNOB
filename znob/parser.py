@@ -186,7 +186,12 @@ def prepare_questions(url: str, questions_dir: Path) -> None:
 		with markdown_question_path.open("w", encoding="utf-8") as file:
 			file.write(snippet)
 		convert_markdown_to_png(
-			snippet, hti, questions_dir, f"{i}.png", stylesheet_href, script_src
+			snippet,
+			hti,
+			questions_dir,
+			f"{i}.png",
+			stylesheet_href,
+			script_src,
 		)
 	answers_path = questions_dir.parent / "answers.md"
 	answers_lines = [
