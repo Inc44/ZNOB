@@ -176,7 +176,6 @@ def prepare_questions(url: str, questions_dir: Path) -> None:
 	markdown_snippets = extract_markdown_from_html(html, base_url=base_url)
 	answers_snippets = extract_answers_from_html(html)
 	hti = Html2Image(
-		browser="edge",
 		output_path=str(questions_dir),
 		size=(512, 1024),
 		disable_logging=True,

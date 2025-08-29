@@ -17,8 +17,7 @@ def convert_question_to_html(question: dict) -> str:
 	html = f'<div id="{question["id"]}" class="task-card">\n'
 	html += f'<div class="counter">{question["counter"]}</div>\n'
 	html += '<div class="question">\n'
-	for paragraph in question["question"]:
-		html += f"<p>{paragraph}</p>\n"
+	html += question["question"] + "\n"
 	html += "</div>\n"
 	answers_sections = question.get("answersSections", [])
 	if answers_sections:
@@ -54,11 +53,8 @@ def sanitize_markdown_images(snippet: str) -> str:
 
 def convert_question_to_markdown(question: dict, base_url: str) -> str:
 	counter = question["counter"]
-	markdown_question = ""
-	for paragraph in question["question"]:
-		soup = BeautifulSoup(paragraph, "html.parser")
-		markdown_question += convert_html_to_markdown(soup, base_url) + "\n\n"
-	markdown_question = markdown_question.strip()
+	soup = BeautifulSoup(question["question"], "html.parser")
+	markdown_question = convert_html_to_markdown(soup, base_url).strip()
 	snippet = f"## {counter}\n\n{markdown_question}\n\n"
 	answers_sections = question.get("answersSections", [])
 	if answers_sections:
@@ -115,6 +111,7 @@ def convert_question_to_png(
 	<script src="{script_src}"></script>
 	<style>
 		body{{background-color: white;}}
+		td{{min-width: 32px;}}
 	</style>
 </head>
 <body>
@@ -142,7 +139,6 @@ def prepare_questions_from_json(json_path: str, questions_dir: Path) -> None:
 	questions = data.get("questions", [])
 	answers_snippets: List[str] = []
 	hti = Html2Image(
-		browser="edge",
 		output_path=str(questions_dir),
 		size=(512, 1024),
 		disable_logging=True,
